@@ -1,0 +1,191 @@
+{% extends "quiz/base.html" %}
+{% load static %}
+
+
+{% block content %}
+<title>Naruto Quizzer | {{quizz.quiz}} game</title>
+  <link rel="stylesheet" href="{% static 'quiz/css/questions.css' %}">
+
+  <form method = "POST" id = "quiz_form" action = "t/">
+    {% csrf_token %}
+    {% for q in questions %}
+      <span onclick= "currSlide({{ forloop.counter }})" class = "question_number">{{ forloop.counter }}</span>
+    {% endfor %}
+    <div style = "width:50%;" class = "timer d-flex justify-content-end">
+          <span id="minutes"></span>
+          <span id="seconds"></span>
+    </div>
+    <div class="slide-container">
+{% for q in questions %}
+  <div class = "question-block slide question{{q.id}}">
+  <span>Question {{ forloop.counter }} / {{quizz.questions_count}}</span>
+  <p><b>{{q.question}}</b></p>
+  <small>{% if q.is_multiple_answers %}multiple answers{% else %}one answer{% endif %}</small>
+  <br>
+  {% if q.image %}
+  <p><img class = "question-img" src="{{q.image}}" alt="{{q.image}}"></p>
+  {% endif %}
+  {% for a in answers %}
+  {% if a.question_name == q %}
+  <li class = "list__item">
+    {% if q.is_multiple_answers == True %}
+    <input name = "n{{q.id}}" value = "{{a.id}}"  id = "{{a.id}}" class = "radio_btn" type="checkbox"><label class = "label" for = "{{a.id}}">{{a.answer}}</label><br>
+    {% else %}
+    <input name = "n{{q.id}}" value = "{{a.id}}"  id = "{{a.id}}" class = "radio_btn" type="radio"><label class = "label" for = "{{a.id}}">{{a.answer}}</label><br>
+    {% endif %}
+  </li>
+  {% endif %}
+  {% endfor %}
+  <hr>
+  </div>
+{% endfor %}
+  </div>
+<a class = "next btn btn-primary next_btn" onclick = "plusSlide(1)">Next</a>
+<button class = "btn btn-warning finish" name = "end" value = "end" data-toggle="modal" id = "finish" type = "submit" data-target="#Modal">Finish Quizz</button>
+<input type="hidden" value = 'test' id = "timer_data" name = "timer_data">
+</form>
+
+<script>
+
+            var slideIndex = parseInt(localStorage.getItem("slide_index"));
+
+            showSlides(slideIndex)
+  					function plusSlide(n){
+  						showSlides(slideIndex += n);
+              localStorage.setItem("slide_index",slideIndex)
+  					}
+  					function currSlide(n){
+  						showSlides(slideIndex = n);
+  					}
+  					function showSlides(n){
+  						var i;
+  						var slide = document.getElementsByClassName("slide");
+              var question_number = document.getElementsByClassName('question_number');
+
+  					if(n > slide.length){
+  						slideIndex = 1;
+  					}
+  					if(n < 1){
+  						slideIndex = slide.length;
+  					}
+            if(slideIndex == slide.length){
+                $('.next_btn').css('display','none');
+                $('.finish').css('display','block');
+            }
+            else{
+                $('.next_btn').css('display','block');
+                $('.finish').css('display','none');
+            }
+  					for(i = 0; i < slide.length; i++){
+  						slide[i].style.display = "none";
+  					}
+
+  					slide[slideIndex - 1].style.display = "block";
+  				}
+
+
+
+  const time = {{quizz.timer}};
+  var result = 0;
+  var count = parseInt(localStorage.getItem("count")) || time;
+  function timer(){
+      var bool = false;
+    localStorage.setItem("count",count);
+    count = count - 1;
+    if(count <= 0){
+      clearInterval(counter);
+       setTimeout(function(){
+             $('#timer').trigger('click');
+         }, 10);
+        localStorage.removeItem("count");
+            }
+
+        let secondes = count % 60;
+        let minutes = Math.floor(count / 60);
+        minutes %= 60;
+
+        if(secondes < 10){ secondes = "0" + secondes;}
+        if(minutes < 10) {minutes = "0" + minutes;}
+
+        $("#minutes").html(minutes + "<span>:</span>");
+        $("#seconds").html(secondes + "<span></span>");
+
+        result = minutes * 60 + secondes;
+
+        result = time - result;
+
+        $('#timer_data').attr('value',result);
+
+
+      if(minutes == 0 && secondes == 0){
+          $('#finish').trigger('click');
+      }
+  }
+
+var counter = setInterval(function() { timer(); }, 1000);
+
+
+var frm = $('#quiz_form');
+
+jQuery(function(){
+    if (localStorage.input) {
+        var checks = JSON.parse(localStorage.input);
+        jQuery(':radio').prop('checked', function(i) {
+            return checks[i];
+        });
+    }
+});
+
+jQuery(':radio').on('change', function() {
+    localStorage.input = JSON.stringify(jQuery(':radio').map(function() {
+        return this.checked;
+    }).get());
+});
+
+$(function(){
+    if (localStorage.input) {
+        var checks = JSON.parse(localStorage.input);
+        jQuery(':checkbox').prop('checked', function(i) {
+            return checks[i];
+        });
+    }
+});
+
+$(':checkbox').on('change', function() {
+    localStorage.input = JSON.stringify($(':checkbox').map(function() {
+        return this.checked;
+    }).get());
+});
+
+
+frm.submit(function(){
+  $.ajax({
+    type:"POST",
+    url:'t/',
+    async: true,
+    data: frm.serialize(),
+      success:function(data){
+            document.location.href = '../result/' + data.result.result_link;
+            localStorage.removeItem("count");
+            localStorage.clear();
+
+      },
+      error:function(data){
+        console.log('Error');
+      },
+  });
+  return false;
+});
+
+window.addEventListener( "pageshow", function ( event ) {
+var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
+if ( historyTraversal ) {
+  // Handle page restore.
+  window.location.reload();
+}
+});
+
+
+</script>
+
+{% endblock %}

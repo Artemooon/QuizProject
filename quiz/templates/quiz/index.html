@@ -1,0 +1,137 @@
+{% extends "quiz/base.html" %}
+
+{% block content %}
+  <title>Naruto Quizzer</title>
+<style>
+
+.home_btn:hover{
+    background:#ffc107 !important;
+    transition:.5s;
+    border:none;
+    color:black;
+  }
+
+.advantages_block{
+  margin:200px 0 0 0;
+}
+
+.adv_row{
+  margin-top:50px;
+}
+
+.quiz_block{
+    margin:200px 0 0 0;
+    padding-bottom:150px;
+}
+
+.text_block{
+  background-color: rgba(128,0,128 ,.3);
+  width:269px;
+  min-height: 100px;
+  margin:0 auto;
+  border: 1px solid rgba(128,0,128 ,.3 );
+  border-bottom-left-radius:5%;
+  border-bottom-right-radius:5%;
+  padding-top:20px;
+}
+
+
+.text_block a:hover{
+  color:#007bff;
+  text-decoration: none;
+}
+
+.quiz_img{
+  width:269px;
+  height:201px;
+}
+
+.quiz_row{
+    margin-top:50px;
+}
+
+.text_block a{
+  color:#ffc107;
+  font-size:34px;
+  font-family:sans-serif;
+}
+
+.footer{
+  margin-top:0 !important;
+}
+
+
+/* @media screen and (max-width: 1200px)  {
+  .text_block{
+    margin-left:13px;
+  }
+}
+*/
+
+@media screen and (max-width: 980px)  {
+  .quiz_row div{
+    margin-bottom:20px;
+  }
+}
+
+</style>
+
+<h1 style = "margin-top:50px; font-size:5em; font-family:cursive ;" class = "main_text text-warning text-center">Naruto Quizzer</h1>
+<div class = "text-center" style = "margin-top:100px">
+  {% if user.is_authenticated %}
+  <h1 style = "margin-top:-30px;" class="display-4">Hello, {{ user.username }}</h1>
+  {% else %}
+  <h1 style = "margin-top:-30px;" class="display-4">Welcome friend</h1>
+  {% endif %}
+  <p style = "margin-top:30px;" class="lead">Welcome to NARUTO QUIZZER, here you can pass tests and discover your knowledge about our adore anime.We have a lot of differents quizzes which include 1 and 2 seasons of Naruto!</p>
+  <hr class="my-4">
+  {% if not user.is_authenticated %}
+  <p><b>First of all create your own profile.It's really easy!</b></p>
+  <p class = "pt-2" style = "margin-bottom:-20px; margin-left:-10px;"><a class="btn home_btn btn-secondary btn-lg" href="/register" role="button">Test my knowledge</a></p>
+  {% else %}
+  <p><b>Let's check your knowledge!</b></p>
+  <p class = "pt-2" style = "margin-bottom:-20px;"><a class="btn btn-success btn-lg" href="/quiz" role="button">Test my knowledge</a></p>
+  {% endif %}
+</div>
+<div class="text-center advantages_block">
+  <h2>With our quizzes you can</h2>
+<div class="row adv_row">
+    <div class="col-lg-4">
+      <i style = "font-size:40px;" class="fa fa-info-circle"></i>
+      <p><b>It's funny and exciting</b></p>
+      <p>If you are a true anime fan pass our quizzes.Check your knowledge about Naruto and boost it, if you need of course</p>
+    </div>
+    <div class="col-lg-4">
+      <i style = "font-size:40px;" class="fa fa-trophy"></i>
+      <p><b>Compete and win</b></p>
+      <p>In our project you compete with others pople.Get points and move up</p>
+    </div>
+    <div class="col-lg-4">
+      <i style = "font-size:40px;" class="fa fa-users"></i>
+      <p><b>Speak and help</b></p>
+      <p>You can also chat with anothers users and help answer to their questions</p>
+    </div>
+</div>
+</div>
+
+<div class="text-center quiz_block">
+  <h2>The most popular and interesting quizzes</h2>
+  <div class="row quiz_row">
+    {% for q in quizzes %}
+    <div class="col-lg-4 main_block">
+      <a href="quiz/preview/{{q.slug}}">
+        {% if q.image %}
+      <img class = "quiz_img" src="{{ q.image.url }}" alt="image">
+        {% endif %}
+      <div class = "text_block">
+      <span class = "quiz_name">{{ q.quiz }}</span>
+      <br>
+      <span>likes: {{ q.likes.count }} dislikes: {{ q.dislikes.count }}</span>
+      </div>
+      </a>
+    </div>
+    {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,63 @@
+.acoount_data_block{
+  max-width:950px;
+  width:100%;
+}
+
+.email_form{
+  margin-top:20px;
+  margin-bottom:20px;
+  max-width:820px;
+  width: 100%;
+}
+
+.user_data_text a{
+   color:#17a2b8 !important;
+}
+
+.password_form{
+  margin-top:20px;
+  margin-bottom:20px;
+  max-width:820px;
+  width: 100%;
+}
+
+.display_form{
+  display:none;
+}
+
+.change_toggle{
+  text-decoration:none !important;
+}
+
+.change_toggle:hover{
+  cursor:pointer;
+}
+
+.change_toggle_pass{
+  text-decoration:none !important;
+}
+
+.change_toggle_pass:hover{
+  cursor:pointer;
+}
+
+.change_toggle_avatar{
+  text-decoration:none !important;
+}
+
+.change_toggle_avatar:hover{
+  cursor:pointer;
+}
+
+.user_data_text:nth-child(2){
+  font-weight:800;
+}
+
+h3{
+  margin-left:-5px;
+}
+
+.user_avatar_data{
+  width:150px;
+  height:150px;
+}

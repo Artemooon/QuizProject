@@ -1,0 +1,79 @@
+{% extends "quiz/base.html" %}
+{% load static %}
+{% load place_filter %}
+
+
+{% block content %}
+<title>Naruto Quizzer | {{quiz.quiz}} result</title>
+<link rel="stylesheet" href="{% static 'quiz/css/result.css' %}">
+<h2 style = "font-size:50px; font-weight:600;" class = "mt-3 text-center">{{quiz_result.quiz}} result</h2>
+{% if quiz_result.is_successfully_passed %}
+<p class = "text-success text-center">Successfully Passed</p>
+{% else %}
+<p class = "text-danger text-center">Unsuccessfully Passed</p>
+{% endif %}
+<p class = "result  mb-5">{{quiz_result.user}} answered correctly {{quiz_result.correct_answers}} of {{question_count}}</p>
+<div class="container">
+<div class="row mb-4 d-flex align-items-center">
+  {% if time_is_up == False %}
+  <div class="col-6">
+    <p class = "text-center" style = "font-size:28px;">{{quiz_result.duration}} ({{quiz.timer}})</p>
+    <span style = "text-align:center; display:block; margin-top:-20px;"><small>Spent time</small></span>
+   </div>
+  {% else %}
+   <div class="col-6">
+     <p class = "text-center" style = "font-size:28px;">{{quiz_result.duration}} ({{quiz.timer | divide:60}} min)</p>
+     <span style = "text-align:center; display:block; margin-top:-20px;"><small>Spent time</small></span>
+    </div>
+  {% endif %}
+  <div class="col-6">
+    <p class = "text-center" style = "font-size:28px;">{{quiz_result.scores}}</p>
+    <span style = "text-align:center; display:block; margin-top:-20px;"><small>Scores earned</small></span>
+  </div>
+</div>
+</div>
+
+{% if request.user == quiz_result.user %}
+<p class = "text-center mt-5" style = "font-size:28px;">Correct answers:</p>
+<div class="res_block">
+{% for q in questions %}
+  <div class = "mb-4">
+  <p style = "font-size:20px;"><b>{{q.question}}</b></p><small>{% if q.is_multiple_answers %}multiple answers{% else %}one answer{% endif %}</small>
+  {% for a in q.gameanswers_set.all %}
+    {% if a.is_selected and a.complete %}
+    <div class = "list__item mb-2">
+    <i data-toggle="tooltip" data-placement="top" title="Selected answer" class="fa fa-hand-o-right select_icon"> </i> <span data-toggle="tooltip" data-placement="top" title="Correct answer" style = "color:green;">{{a.answer}}</span>
+    </div>
+    {% elif a.is_selected and a.complete == False %}
+    <div class = "list__item mb-2">
+    <i data-toggle="tooltip" data-placement="top" title="Selected answer"  class="fa fa-hand-o-right select_icon"> </i> <span data-toggle="tooltip" data-placement="top" title="Uncorrect answer" style = "color:red;">{{a.answer}}</span>
+    </div>
+    {% else %}
+    <div style = "color:black;" class = "list__item mb-2">
+    {{a.answer}}
+    </div>
+    {% endif %}
+  {% endfor %}
+  </div>
+{% endfor %}
+
+</div>
+{% else %}
+<div style = "height:50px;" class="mr-3 mt-5 mb-5 alert alert-info" role="alert">
+  <p style = "font-size: 20px;" class = " text-center">Correct answers are visible only to the authors of the passing</p>
+</div>
+{% endif %}
+<button onclick="document.location.href = '/quiz/'" class = "btn btn-info mb-5">To Another Quizzes</button>
+
+
+<script>
+  window.addEventListener( "pageshow", function ( event ) {
+  var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
+  if ( historyTraversal ) {
+    // Handle page restore.
+    window.location.reload();
+  }
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "quiz/base.html" %}
+{% load static %}
+
+{% block content %}
+<title>Naruto Quizzer | Stats {{user_instance.username}}</title>
+
+<style>
+
+.stat-item{
+  font-size:20px;
+}
+
+</style>
+
+<div class="row">
+  <div class="stat-item col-6 text-center mt-4">Quizzes Pasted</div>
+  <div class="stat-item col-6 text-center mt-4">{{user_quiz_results.count}}</div>
+  <div class="stat-item col-6 text-center mt-4">Successfully passes</div>
+  <div class="stat-item col-6 text-center mt-4">{{successfully_passes}} %</div>
+  <div class="stat-item col-6 text-center mt-4">Unsuccessfully passes</div>
+  <div class="stat-item col-6 text-center  mt-4">{{unsuccessfully_passes}} %</div>
+  <div class="stat-item col-6 text-center mt-4">Best Time</div>
+  <div class="stat-item col-6 text-center  mt-4">{{best_time}}</div>
+  <div class="stat-item col-6 text-center mt-4">Total scores</div>
+  <div class="stat-item col-6 text-center  mt-4">{{user_instance.total_scores}}</div>
+  <div data-toggle="tooltip" data-placement="top" title="Shows how many scores you get for one correct answer" class="stat-item col-6 text-center mt-4">Score factor</div>
+  <div class="stat-item col-6 text-center  mt-4">{{user_instance.profile.scores_factor}}</div>
+  <div class="stat-item col-6 text-center mt-4">Rank</div>
+  <div class="{% if user_instance.rank == 'Academy Student' %} text-success {% else %}{{user_instance.rank}}{% endif %}  stat-item col-6 text-center  mt-4">{{user_instance.rank}}</div>
+</div>
+
+
+{% endblock %}

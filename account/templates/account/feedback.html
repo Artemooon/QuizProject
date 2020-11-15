@@ -1,0 +1,31 @@
+{% extends "quiz/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<title>Naruto Quizzer | Feedback</title>
+
+<style>
+.mail_form{
+  max-width:1100px;
+  width: 100%;
+}
+
+</style>
+
+<h2 class = "text-center mt-3 mb-4">Contact Us</h2>
+<p class = "text-center">Describe your letter as informative as possible, you can send one letter per 6 hours</p>
+<form method = 'POST' class = "mail_form" id = "mail_form">
+{% csrf_token %}
+
+{{ mail_form | crispy }}
+
+{{timezone}}
+
+{% if can_send_email == True %}
+<button type = "submit" class = "btn btn-success">Send</button>
+{% else %}
+<span>You can send a new email in {{time_to_wait_format}}</span>
+{% endif %}
+
+</form>
+{% endblock %}

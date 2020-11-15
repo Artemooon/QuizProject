@@ -1,0 +1,15 @@
+{% if not user.is_authenticated %}
+<p>Dislikes: {{ quizz.dislikes.count }}</p>
+{% endif %}
+{% if user.is_authenticated %}
+<form action="dislike/" method = "POST">
+  {% csrf_token %}
+  {% if is_disliked == False  %}
+  <button class = "dislike" id = "dislike_btn" type = "submit" name = "dislike_id" value = "{{ quizz.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+  <span> Dislikes: {{ total_dislikes }}</span>
+  {% else %}
+  <button class = "dislike_clicked" id = "dislike_btn" type = "submit" name = "dislike_id" value = "{{ quizz.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+  <span> Dislikes: {{ total_dislikes }}</span>
+  {% endif %}
+</form>
+{% endif %}

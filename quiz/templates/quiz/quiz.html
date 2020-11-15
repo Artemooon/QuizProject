@@ -1,0 +1,36 @@
+{% extends "quiz/base.html" %}
+{% load static %}
+
+{% block content %}
+<title>Naruto Quizzer | Quizzes</title>
+  <link rel="stylesheet" href="{% static 'quiz/css/quiz.css' %}">
+  <input name = "searchField" type="text" class = "mt-3 searchField form-control" placeholder="Search Quiz">
+  <div class="row main_block mb-5">
+    {% for q in quizzes %}
+    <div class="col-lg-4 text-center quiz_item">
+      <a href="preview/{{q.slug}}">
+        {% if q.image %}
+      <img class = "quiz_img" src="{{ q.image.url }}" alt="image">
+        {% endif %}
+      <div class = "text_block">
+      <span class = "quiz_name">{{ q.quiz }}</span>
+      <br>
+      <span>likes: {{ q.likes.count }} dislikes: {{ q.dislikes.count }}</span>
+      </div>
+      </a>
+    </div>
+    {% endfor %}
+    </div>
+
+    <script>
+      $(document).ready(function(){
+        $(".searchField").on("keyup", function() {
+          var value = $(this).val().toLowerCase();
+          $(".quiz_item").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+          });
+        });
+      });
+    </script>
+
+{% endblock %}

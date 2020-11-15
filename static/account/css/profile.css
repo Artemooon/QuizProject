@@ -1,0 +1,82 @@
+.profile_avatar{
+    max-width:160px;
+    max-height:160px;
+    width:100%;
+    height:100%;
+    border-radius:50%;
+    border:1px solid #ccc;
+    margin:40px auto 0 auto;
+    display:block;
+}
+
+.username_text{
+  display:block;
+  font-size:20px;
+  font-weight:300;
+  margin-top:0px;
+  margin-left:-90px;
+  text-align:center;
+}
+
+.name_text{
+  display:block;
+  font-size:22px;
+  font-weight:900;
+  margin-top:30px;
+  margin-left:-85px;
+  text-align:center;
+}
+
+.settings_btn{
+    margin-left:95px;
+    margin-top:20px;
+    margin-bottom:100px;
+    display:block;
+}
+
+.user_total{
+  margin-top:45px;
+}
+
+.results_block{
+  max-width:950px;
+  width: 100%;
+  margin-top:90px;
+}
+
+.result_item{
+box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.24);
+background-color: #fff;
+padding: .75em;
+display: flex;
+border-radius: 3px;
+flex-direction: column;
+margin-bottom: 1.5em;
+}
+
+footer{
+  display: none;
+}
+
+.result_time{
+  display: block;
+  margin-top:8px;
+}
+
+@media screen and (max-width:991px){
+  .username_text{
+    margin-left:0;
+  }
+  .settings_btn{
+      margin:20px auto 0 auto;
+      display:block;
+  }
+  .name_text{
+    display:block;
+    font-size:22px;
+    font-weight:900;
+    margin-top:30px;
+    margin-left:0px;
+    text-align:center;
+  }
+}

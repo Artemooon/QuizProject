@@ -1,0 +1,565 @@
+{% extends "quiz/base.html" %}
+{% load static %}
+{% load place_filter %}
+
+{% block content %}
+<title>Naruto Quizzer | {{quizz.quiz}}</title>
+  <link rel="stylesheet" href="{% static 'quiz/css/preview.css' %}">
+  <style>
+    footer{
+      display: none;
+    }
+    .comment-list{
+        margin-left:63px;
+        margin-top:-20px;
+        max-width:95%;
+    }
+
+    @media screen and (max-width:420px){
+      b[style *= "font-size:18px;"]{
+          font-size:15px !important;
+
+      }
+
+      .comment_text a{
+        -ms-word-break:break-word;
+        word-break:break-word;
+      }
+      .small-date{
+        font-size:80% !important;
+        display:block !important;
+        margin-left:50px !important;
+        margin-top:-15px !important;
+      }
+    }
+  </style>
+  <h3 class = "mt-3 text-center">{{quizz.quiz}} quizz</h3>
+  <a style = "display:none;" class = "to_upp" href="#MainField"></a>
+  <p class = "mt-4 description-text">{{ quizz.preview_field }}</p>
+  <p class = "passes">Total passes: {{total_passes}}</p>
+  {% if not user.is_authenticated %}
+  <div style = "height:50px;" class="mr-3 mt-5 alert alert-warning" role="alert">
+    <p style = "font-size: 20px;" class = " text-center">You need  <a href="/login">Login</a> to start this quiz</p>
+  </div>
+  {% else %}
+  {% if is_blocked == False and first_question.is_used == True or not first_question %}
+  <form method = "POST">
+    {% csrf_token %}
+  <button type = "submit" name = "start_quiz_btn_name" value = "start_quiz_btn_name" id = "start_btn_click" class = "btn btn-outline-success btn-block start_btn" style = "width:91%; margin:0 auto;">Start Quizz</button>
+  </form>
+  {% elif first_question.is_used == False %}
+  <a href = "/quiz/{{quizz.slug}}/{{unique_link}}" class = "btn btn-outline-info btn-block start_btn" style = "width:91%; margin:0 auto;">Continue Quizz</a>
+  {% else %}
+  <a class = "btn btn-outline-warning btn-block start_btn" style = "width:91%; margin:0 auto;">You can start in {{time_to_wait}}</a>
+  {% endif %}
+  {% endif %}
+  <br>
+  <div class = "likes_section">
+  {% include 'quiz/like_section.html' %}
+  </div>
+    <div class = "dislikes_section">
+  {% include 'quiz/dislike_section.html' %}
+  </div>
+  <div class="description_info">
+    <span>Question quantity: <b>{{quizz.questions_count}}</b></span>
+    <span>Duration: <b>{{quizz.timer | divide:60}} minutes</b></span>
+    <span>Attempts: 1 every <b>{{quizz.attempt_time}} hours</b></span>
+  </div>
+  <div class="container results_block">
+    {% if not users_results.count == 0 %}
+    <p style = "font-size:25px;">Recent passes</p>
+    {% endif %}
+    <div class="row">
+  {% for users_result in users_results %}
+  <div class="col-12 text-center result_item">
+      <span>{{users_result.user}} passed quiz {{users_result.quiz}} (link <a href="/quiz/{{users_result.quiz.slug}}/result/{{users_result.result_link}}">#{{users_result.result_link}}</a>) with result: {{users_result.correct_answers}} of {{users_result.quiz.questions_set.all.count}} correct answers and got {{users_result.scores}} scores of <a href="/rating">rating</a></span>
+      <span class = "result_time">{{user_quiz_result.result_time | date:'d.m.Y H:i'}}</span>
+  </div>
+  {% endfor %}
+  </div>
+  </div>
+  <div class="comments">
+        <form id = "comment_form" method="POST">
+              {% csrf_token %}
+            <h3 class = "comments_text pb-2 ml-5">Comments ({{comments_len}})</h3>
+            {% if user.profile.is_baned %}
+            <textarea class = "commentField" id = "MainField" name = "commentField" placeholder="You cannot leave comments because you have broken the rules of communication"></textarea>
+            <button class = "btn btn-primary mt-4 ml-5" id = "submit_btn" name = "addComment" value = "addComment" type = "button" disabled title = "You cannot leave comments">Send</button>
+            {% else %}
+            {% if user.is_authenticated %}
+            <textarea class = "commentField" id = "MainField" name = "commentField" placeholder="Write your comment here"></textarea>
+            <button class = "btn btn-primary mt-4 ml-5" id = "submit_btn" name = "addComment" value = "addComment" type = "button">Send</button>
+            <button class = "btn btn-info mt-4 ml-5"  id = "edit_btn" type = "button" value = "edit_comment" name = "edit_comment" style = "display:none;">Edit</button>
+            <button type = "button" class = "btn btn-danger mt-4 ml-2" title = "Cancel editing"  id = "cancel_btn" style = "display:none;">Cancel</button>
+            {% else %}
+            <textarea class = "commentField" id = "MainField" name = "commentField" placeholder="Log in to write a comment"></textarea>
+            <button class = "btn btn-primary mt-4 ml-5" id = "submit_btn" name = "addComment" value = "addComment" type = "button" disabled title = "Log in to write a comment">Send</button>
+            {% endif %}
+            {% endif %}
+        </form>
+            <div id = "comment_block_id" class="comment_reverse_block">
+                {% for comment in comments %}
+                <div style = "width:91%;" id = "comment_unique_{{comment.id}}" class = "ml-5 mt-4 single_comment_block comment_{{comment.id}}">
+                <a style = "text-decoration:none;" href="../../../profile/{{comment.user.slug}}"><img style = "border:none; border-radius:50%;" class = "avatar" src="{{comment.user_img}}" alt="avatar"> </a>
+                <span style = " position:relative; top:-10px; left:10px; padding:0;"><b style = "font-size:18px;">{{ comment.user }}</b> <small class = "small-date" style = "padding-right:10px;">{{comment.publicationDate | date:'d.m.Y H:i'}} {% if comment.is_edited %} | edited {% endif %}</small>  <span data-toggle="tooltip" data-placement="top" title="Rank" class = "user_rank {% if comment.user.rank == 'Academy Student' %}academy{% else %} {{comment.user.rank}}  {% endif %}">{{comment.user.rank}}</span></span>
+                <br>
+                {% if user.is_authenticated and user == comment.user or user.is_superuser %}
+                <input style = "display:none;" class = "check_comment_delete_inp" value = "delete" name = "d{{comment.id}}" type="checkbox" id = "d{{comment.id}}">
+                <label class = "check_comment_delete" id = "{{comment.id}}" data-toggle="tooltip" data-placement="bottom" title="Delete this comment" style = "display:inline; float:right; margin-top:-25px;" for="d{{comment.id}}"><i  class="fa fa-trash-o"></i></label>
+                <a class = "comment_unique_{{comment.id}}" style = "display:none;" href="#comment_unique_{{comment.id}}"></a>
+                <input style = "display:none;" name = "{{comment.comment}}" type="checkbox" class = "edit_input" id = "e{{comment.id}}">
+                <lable class = "check_comment_edit" data-id = "{{comment.id}}" id = "c{{comment.id}}" data-toggle="tooltip" data-placement="top" title="Edit this comment" style = "display:inline; float:right; margin-right:10px; margin-top:-25px;" for  = "e{{comment.id}}"><i style = "float:right; margin-left:10px; margin-top:5px;" class="fa fa-pencil"></i></lable>
+                {% endif %}
+              <div class="comment-list">
+              <span class = "comment_text">{{comment.comment}}</span>
+              </div>
+              <br>
+              <div class = "comments_likes_section like_section_{{comment.id}}">
+              {% include 'quiz/comment_like_section.html' %}
+              </div>
+                <div class = "comments_dislikes_section dislike_section_{{comment.id}}">
+              {% include 'quiz/comment_dislike_section.html' %}
+              </div>
+              <br>
+              <br>
+              {% if not user.profile.is_baned %}
+              <button type = "button" id = "r{{comment.id}}" class = "btn btn-link reply_btn">Reply</button>
+              {% endif %}
+              </div>
+             <div class="answer_comment_block_{{comment.id}}" data-id = "{{comment.id}}">
+               <form class = "reply_form" action = "{url 'ajax_query'}" method="POST">
+                 {% csrf_token %}
+                 <div style = "width:91%;" class = "mt-2 ml-5">
+                     <input class = "hide_reply" type="hidden" name = "comment_id" value = "{{comment.id}}">
+                     <textarea name = "text_data" class = "ml-5 commentField reply_field" id = "t{{comment.id}}" style = "display:none;" placeholder="Write your answer here"></textarea>
+                     {% if user.is_authenticated %}
+                     <button type = 'submit' class = "btn btn-info mt-4 ml-5 reply_btn_send" value = "replySend" name = "replySend" title = "Answer to"  id = "a{{comment.id}}" style = "display:none;">Reply</button>
+                     <button type = "button" class = "btn btn-danger mt-4 ml-2" id = "da{{comment.id}}" title = "Cancel answering" style = "display:none;">Cancel</button>
+                     {% else %}
+                     <button type = 'button' class = "btn btn-info mt-4 ml-5 reply_btn_send" value = "answer_send" name = "answer_send"   id = "a{{comment.id}}" style = "display:none;" disabled title = "Log in to reply">Reply</button>
+                     <button type = "button" class = "btn btn-danger mt-4 ml-2" id = "da{{comment.id}}" title = "Cancel answering" style = "display:none;">Cancel</button>
+                     {% endif %}
+                 </div>
+               </form>
+               {% for reply in comment.replies.all %}
+               <div style = "width:85%; margin-left:115px;" class = "mt-4 single_comment_block reply_block comment_{{reply.id}}">
+               <a style = "text-decoration:none;" href="../../../profile/{{reply.user.slug}}"><img style = "border:none; border-radius:50%;" class = "avatar" src="{{reply.user_img}}" alt="avatar"> </a>
+               <span style = " position:relative; height:10px; top:-10px; left:10px; padding:0;"><b style = "font-size:18px;">{{ reply.user }}</b> <small class = "small-date" style = "padding-right:10px;">{{reply.publicationDate | date:'d.m.Y H:i'}} {% if comment.is_edited %} | edited {% endif %}</small> <span title = "Rank" data-toggle="tooltip" data-placement="top" class = "user_rank {% if reply.user.rank == 'Academy Student' %}academy{% else %} {{reply.user.rank}}  {% endif %}">{{reply.user.rank}}</span></span>
+               <br>
+               {% if user.is_authenticated and user == reply.user %}
+               <input style = "display:none;" class = "check_comment_delete_inp" value = "delete" name = "d{{reply.id}}" type="checkbox" id = "d{{reply.id}}">
+               <label class = "check_comment_delete" id = "{{reply.id}}" data-toggle="tooltip" data-placement="bottom" title="Delete this comment" style = "display:inline; float:right; margin-top:-25px;" for="d{{reply.id}}"><i  class="fa fa-trash-o"></i></label>
+
+               <input style = "display:none;" name = "{{reply.comment}}" type="checkbox" class = "edit_input" id = "e{{reply.id}}">
+               <lable class = "check_comment_edit" data-id = "{{reply.id}}" id = "c{{reply.id}}" data-toggle="tooltip" data-placement="top" title="Edit this comment" style = "display:inline; float:right; margin-right:10px; margin-top:-25px;" for  = "e{{reply.id}}"><i style = "float:right; margin-left:10px; margin-top:5px;" class="fa fa-pencil"></i></lable>
+               {% endif %}
+             <div class="comment-list">
+             <span class = "comment_text"><a href="/profile/{{comment.user.slug}}">{{comment.user.username}}, </a>{{reply.comment}}</span>
+             </div>
+             <br>
+             <div class = "comments_likes_section like_section_{{reply.id}}">
+               <form method = "POST" id = "comment_like_form_{{ reply.id }}" action="like-comment/">
+               {% csrf_token %}
+               {% if request.user in reply.likes.all  %}
+               <button class = "comment_like_clicked current_like_comment" id = "comment_like_btn_{{ reply.id }}" type = "submit" name = "comment_like_id" value = "{{ reply.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+               <span>{{ reply.likes.count }} </span>
+               {% else %}
+               <button class = "comment_like current_like_comment" id = "comment_like_btn_{{ reply.id }}" type = "submit" name = "comment_like_id" value = "{{ reply.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+               <span>{{ reply.likes.count }}</span>
+               {% endif %}
+               </form>
+             </div>
+               <div class = "comments_dislikes_section dislike_section_{{reply.id}}">
+                 <form class = "dislike_comment_form" id = "comment_dislike_form_{{ reply.id }}" action = "dislike-comment/" method = "POST">
+                   {% csrf_token %}
+                   {% if request.user in reply.dislikes.all  %}
+                   <button class = "comment_dislike_clicked current_dislike_comment" id = "comment_dislike_btn_{{ reply.id }}" name = "comment_dislike_id"  type = "submit"  value = "{{ reply.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+                   <span>{{ reply.dislikes.count }}</span>
+                   {% else %}
+                   <button class = "comment_dislike current_dislike_comment" id = "comment_dislike_btn_{{ reply.id }}" name = "comment_dislike_id" type = "submit" value = "{{ reply.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+                   <span>{{ reply.dislikes.count }}</span>
+                   {% endif %}
+                 </form>
+             </div>
+            <br>
+            <br>
+             </div>
+               {% endfor %}
+            </div>
+            {% endfor %}
+            </div>
+          </div>
+
+
+
+  <script>
+
+    $('#start_btn_click').on("click",function(){
+      let num = parseInt(1);
+      localStorage.setItem('slide_index',num);
+    })
+
+    {% if user.is_authenticated %}
+    $('#submit_btn').attr('disabled', 'disabled');
+
+    $('#edit_btn').attr('disabled', 'disabled');
+
+
+    $('#MainField').on('keyup', function() {
+    let empty = false;
+
+    $('#MainField').each(function() {
+      empty = $(this).val().length == 0;
+    });
+
+    if (empty)
+      $('#submit_btn').attr('disabled', 'disabled');
+    else{
+      $('#submit_btn').attr('disabled', false);
+    }
+  });
+
+  $('#MainField').on('keyup', function() {
+  let empty = false;
+
+  $('#MainField').each(function() {
+    empty = $(this).val().length == 0;
+  });
+
+  if (empty)
+    $('#edit_btn').attr('disabled', 'disabled');
+  else{
+    $('#edit_btn').attr('disabled', false);
+  }
+});
+{% else %}
+$('#MainField').focus(function() {
+    document.location.href = '/login/';
+
+});
+
+{% endif %}
+
+    $('#submit_btn').click(function(){
+      $.ajax({
+        type:"POST",
+        url:"/quiz/preview/{{quizz.slug}}/ajax",
+        data: {
+          text_data:$('#MainField').val(),
+          button_data:$('#submit_btn').val(),
+          csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+          success:function(data){
+              $('.comment_reverse_block').prepend('<div style = "width:91%;" class = "ml-5 mt-4 single_comment_block comment_' + data.result.id + '"> <a style = "text-decoration:none;" href="../../../profile/'+ data.user.slug +'"><img style="border:none; border-radius:50%;" class = "avatar" src= "' + data.result.user_img + '" alt="avatar" /> </a>' + " " + '<span style = "position:relative; height:10px; top:-10px; left:10px; padding:0;"><b style = "font-size:18px;">' + data.user.username + '</b>' + " " + '<small class = "small-date" style = "padding-right:10px;">' + moment().format("DD.MM.Y HH:mm") + '</small> <span class = "user_rank ' + data.user.rank + '">' + data.user.rank +  '</span></span><br><input style = "display:none;" value = "delete" name = "d' + data.result.id + '" type="checkbox" id = "d' + data.result.id + '"><label class ="check_comment_delete" id = "' + data.result.id + '" data-toggle="tooltip" data-placement="bottom" title="Delete this comment" style = "display:inline; float:right;" for="d' + data.result.id + '"><i  class="fa fa-trash-o"></i></label><input style = "display:none;" value = "' + data.result.id + '" name = "' + data.result.comment + '" type="checkbox" class = "edit_input" id = "e' + data.result.id + '"><lable class = "check_comment_edit" data-id = "' + data.result.id + '" id = "c' + data.result.id + '" data-toggle="tooltip" data-placement="top" title = "Edit this comment" style = "display:inline; float:right; margin-right:10px;" for  = "e' + data.result.id + '"><i style = "float:right; margin-left:10px; margin-top:5px;" class="fa fa-pencil"></i></lable><div class="comment-list"><span class = "comment_text">' + data.result.comment + '</span></div><br><div class = "comments_likes_section like_section_' + data.result.id + '"><form method = "POST" id = "comment_like_form_'+ data.result.id + '" action="like-comment/"><button class = "comment_like current_like_comment" id = "comment_like_btn_' + data.result.id + '" type = "button" name = "comment_like_id" value = "' + data.result.id + '"><i class="fa fa-thumbs-o-up"></i></button><span>0</span></form></div><div class = "comments_dislikes_section dislike_section_' + data.result.id + '"><form method = "POST" id = "comment_dislike_form_' + data.result.id + '" action="dislike-comment/"><button class = "comment_dislike current_dislike_comment" id = "comment_dislike_btn_' + data.result.id + '" type = "button" name = "comment_dislike_id" value = "' + data.result.id + '"><i class="fa fa-thumbs-o-up"></i></button><span>0</span></form></div><br/><br/><button type = "button" id = "r' + data.result.id + '" class = "mt-1 btn btn-link reply_btn">Reply</button></div><div class="answer_comment_block_' + data.result.id + '" data-id = "' + data.result.id + '"><form class = "reply_form" action = "ajax/" method="POST">{% csrf_token %}<div style = "width:91%;" class = "mt-2 ml-5"><input class = "hide_reply" type="hidden" name = "comment_id" value = "' + data.result.id + '"><textarea name = "text_data" class = "ml-5 commentField reply_field" id = "t' + data.result.id + '" style = "display:none;" placeholder="Write your answer here"></textarea><button type = "submit" class = "btn btn-info mt-4 ml-5 reply_btn_send" value = "replySend" name = "replySend" title = "Answer to"  id = "a' + data.result.id + '" style = "display:none;">Reply</button><button type = "button" class = "btn btn-danger mt-4 ml-2" id = "da' + data.result.id + '" title = "Cancel answering" style = "display:none;">Cancel</button></div></form>'),
+              $('.commentField').val("");
+              $('#submit_btn').attr('disabled', 'disabled');
+              $('#r' + data.result.id).click(function(){
+                $(this).css('display','none');
+                $('#t' + data.result.id).css('display','block');
+                $('#a' + data.result.id).css('display','inline-block');
+                $('#da' + data.result.id).css('display','inline-block');
+              });
+
+              $('#da' + data.result.id).click(function(){
+                $('#r' + data.result.id).css('display','inline-block');
+                $('#t' + data.result.id).css('display','none');
+                $('#a' + data.result.id).css('display','none');
+                $('#da' + data.result.id).css('display','none');
+              })
+          },
+          error:function(data){
+            console.log('Error');
+          },
+      })
+    });
+
+    $(document).on('submit', '.reply_form', function(event){
+      event.preventDefault();
+      var parent_id = $(this).parent().attr("data-id");
+      if($('#t' + parent_id).val().length != 0 && $('#t' + parent_id).val().trim() !== ''){
+      $.ajax({
+        type : 'POST',
+        url: '/quiz/preview/{{quizz.slug}}/ajax',
+        data: $(this).serialize(),
+        dataType:'json',
+        success:function(data){
+            $('.answer_comment_block_' + parent_id).prepend('<div style = "width:85%; margin-left:115px;" class = "mt-4 single_comment_block comment_' + data.result.id + '"> <a style = "text-decoration:none;" href="../../../profile/'+ data.user.slug +'"><img style="border:none; border-radius:50%;" class = "avatar" src= "' + data.result.user_img + '" alt="avatar" /> </a>' + " " + '<span style = "position:relative; height:10px; top:-10px; left:10px; padding:0;"><b style = "font-size:18px;">' + data.user.username + '</b>' + " " + '<small class = "small-date" style = "padding-right:10px;">' + moment().format("DD.MM.Y HH:mm") + '</small><span class = "user_rank ' + data.user.rank + '">' + data.user.rank +  '</span></span><br><input style = "display:none;" value = "delete" name = "d' + data.result.id + '" type="checkbox" id = "d' + data.result.id + '"><label class ="check_comment_delete" id = "' + data.result.id + '" data-toggle="tooltip" data-placement="bottom" title="Delete this comment" style = "display:inline; float:right;" for="d' + data.result.id + '"><i  class="fa fa-trash-o"></i></label><input style = "display:none;" value = "' + data.result.id + '" name = "' + data.result.comment + '" type="checkbox" class = "edit_input" id = "e' + data.result.id + '"><lable class = "check_comment_edit" data-id = "' + data.result.id + '" id = "c' + data.result.id + '" data-toggle="tooltip" data-placement="top" title="Edit this comment" style = "display:inline; float:right; margin-right:10px;" for  = "e' + data.result.id + '"><i style = "float:right; margin-left:10px; margin-top:5px;" class="fa fa-pencil"></i></lable><div class="comment-list"><span class = "comment_text"><a href="/profile/' + data.parent_comment.slug + '"> ' + data.parent_comment.username + ', </a>' + data.result.comment + '</span></div><br><div class = "comments_likes_section like_section_' + data.result.id + '"><form method = "POST" id = "comment_like_form_'+ data.result.id + '" action="like-comment/"><button class = "comment_like current_like_comment" id = "comment_like_btn_' + data.result.id + '" type = "button" name = "comment_like_id" value = "' + data.result.id + '"><i class="fa fa-thumbs-o-up"></i></button><span>0</span></form></div><div class = "comments_dislikes_section dislike_section_' + data.result.id + '"><form method = "POST" id = "comment_dislike_form_' + data.result.id + '" action="dislike-comment/"><button class = "comment_dislike current_dislike_comment" id = "comment_dislike_btn_' + data.result.id + '" type = "button" name = "comment_dislike_id" value = "' + data.result.id + '"><i class="fa fa-thumbs-o-up"></i></button><span>0</span></form></div><br/></br></div>'),
+            $('.commentField').val("");
+        },
+        error:function(data){
+          console.log('Error');
+        },
+      });
+    }
+    else{
+      alert('Fill this reply field')
+    }
+    });
+
+    $("body").on('click', '.check_comment_delete' , function(event){
+      event.stopPropagation();
+        var dataId = $(this).attr('id');
+        $.ajax({
+          url:"/quiz/preview/{{quizz.slug}}/" + dataId + "/delete/",
+          type:'post',
+          data: {id:dataId,
+                csrfmiddlewaretoken:$('input[name = csrfmiddlewaretoken]').val(),
+        },
+          dataType: 'json',
+          success: function(){
+              $('.comment_' + dataId + '').remove();
+          },
+          error: function(){
+            console.log("error");
+          },
+        });
+    });
+    //Проблема с айди выбирается только один элемент короче
+    $("body").on('click', '.check_comment_edit' , function(event){
+      var dataId = $(this).data('id');
+      var inp_val = $('#e' + dataId + '').attr("name");
+      $('.commentField').val(inp_val);
+      $('.to_upp').trigger('click');
+      $('#edit_btn').css("display","inline-block");
+      $('#submit_btn').css("display","none");
+      $('#cancel_btn').css("display","inline-block");
+      $('.comment_' + dataId + '').css('display','none');
+      $('.check_comment_edit').css('display','none');
+      $('.check_comment_delete').css('display','none');
+      $("#edit_btn").click(function(){
+      $.ajax({
+        type:'POST',
+        dataType: 'json',
+        data: {id:dataId,
+              button:$('#edit_btn').val(),
+              text_data:$('.commentField').val(),
+              csrfmiddlewaretoken:$('input[name = csrfmiddlewaretoken]').val()
+      },
+        url:"/quiz/preview/{{quizz.slug}}/" + dataId + "/edit/",
+        async:false,
+        success: function(data){
+          var inp_val = $('#e' + dataId + '').attr("name");
+          //$('.commentField').val("");
+          $('#edit_btn').css("display","none");
+          $('#cancel_btn').css("display","none");
+          $('.comment_' + dataId + '').css('display','block');
+          $('.comment_' + dataId + '').html('<a style = "text-decoration:none;" href="../../../profile/'+ data.user.username +'"><img style="border:none; border-radius:50%;" class = "avatar" src="' + data.result.user_img + '" alt="avatar" /></a>' + " " + '<span style = "position:relative; height:10px; top:-10px; left:10px; padding:0;"><b style = "font-size:18px;">' + data.user.username + '</b>' + " " + '<small class = "small-date">' +  moment(data.result.publicationDate).format("DD.MM.Y HH:mm") + ' | edited</small> <span class = "user_rank ' + data.user.rank + '">' + data.user.rank +  '</span> <small><i><br><input style = "display:none;" value = "delete" name = "d' + data.result.id + '" type="checkbox" id = "d' + data.result.id + '"><label class ="check_comment_delete" id = "' + data.result.id + '" data-toggle="tooltip" data-placement="bottom" title="Delete this comment" style = "display:inline; float:right;" for="d' + data.result.id + '"><i  class="fa fa-trash-o"></i></label><input style = "display:none;" value = "' + data.result.id + '" name = "' + data.result.comment + '" type="checkbox" class = "edit_input" id = "e' + data.result.id + '"><lable class = "check_comment_edit" data-id = "' + data.result.id + '" id = "c' + data.result.id + '" data-toggle="tooltip" data-placement="top" title="Edit this comment" style = "display:inline; float:right; margin-right:10px;" for  = "e' + data.result.id + '"><i style = "float:right; margin-left:10px; margin-top:5px;" class="fa fa-pencil"></i></lable><div class="comment-list"><span class = "comment_text"><a href="/profile/' + data.user.slug + '"> ' + data.user.username + ', </a>' + data.result.comment + '</span></div><br><div class = "comments_likes_section like_section_' + data.result.id + '"><form method = "POST" id = "comment_like_form_'+ data.result.id + '" action="like-comment/"><button class = "comment_like current_like_comment" id = "comment_like_btn_' + data.result.id + '" type = "button" name = "comment_like_id" value = "' + data.result.id + '"><i class="fa fa-thumbs-o-up"></i></button><span>' + data.comment_likes_count + '</span></form></div><div class = "comments_dislikes_section dislike_section_' + data.result.id + '"><form method = "POST" id = "comment_dislike_form_' + data.result.id + '" action="dislike-comment/"><button class = "comment_dislike current_dislike_comment" id = "comment_dislike_btn_' + data.result.id + '" type = "button" name = "comment_dislike_id" value = "' + data.result.id + '"><i class="fa fa-thumbs-o-up"></i></button><span>' + data.comment_dislikes_count + '</span></form></div><br/><br/><button type = "button" id = "r' + data.result.id + '" class = "mt-1 btn btn-link reply_btn">Reply</button><div class="answer_comment_block_' + data.result.id + '" data-id = "' + data.result.id + '"><form class = "reply_form" action = "ajax/" method="POST">{% csrf_token %}<div style = "width:91%;" class = "mt-2 ml-5"><input class = "hide_reply" type="hidden" name = "comment_id" value = "' + data.result.id + '"><textarea name = "text_data" class = "ml-5 commentField reply_field" id = "t' + data.result.id + '" style = "display:none;" placeholder="Write your answer here"></textarea><button type = "submit" class = "btn btn-info mt-4 ml-5 reply_btn_send" value = "replySend" name = "replySend" title = "Answer to"  id = "a' + data.result.id + '" style = "display:none;">Reply</button><button type = "button" class = "btn btn-danger mt-4 ml-2" id = "da' + data.result.id + '" title = "Cancel answering" style = "display:none;">Cancel</button></div></form>'),
+          $('#comment_form')[0].reset();
+          dataId = "";
+          $('#r' + data.result.id).click(function(){
+            $(this).css('display','none');
+            $('#t' + data.result.id).css('display','block');
+            $('#a' + data.result.id).css('display','inline-block');
+            $('#da' + data.result.id).css('display','inline-block');
+          });
+
+          $('#da' + data.result.id).click(function(){
+            $('#r' + data.result.id).css('display','inline-block');
+            $('#t' + data.result.id).css('display','none');
+            $('#a' + data.result.id).css('display','none');
+            $('#da' + data.result.id).css('display','none');
+          })
+        },
+        error: function(data){
+          console.log("error");
+        },
+      });
+    });
+
+    $('#edit_btn').click(function(){
+      $('#edit_btn').css("display","none");
+      {% for comment in comments %}
+      $('.comment_unique_{{comment.id}}').trigger('click');
+      {% endfor %}
+      $('#cancel_btn').css("display","none");
+      $('.comment_' + dataId + '').css('display','block');
+      $('.check_comment_edit').css('display','inline');
+      $('#submit_btn').css("display","block");
+    });
+
+    $('#cancel_btn').click(function(){
+      $('.commentField').val("");
+      $('#edit_btn').css("display","none");
+      $('#cancel_btn').css("display","none");
+      $('.comment_' + dataId + '').css('display','block');
+      $('.check_comment_edit').css('display','inline');
+      $('.check_comment_delete').css('display','inline');
+      $('#submit_btn').css("display","block");
+    });
+  });
+
+  if($('#comment_like_btn').hasClass('comment_like_clicked')){
+    $('#comment_dislike_btn').attr('disabled','disabled')
+  }
+
+
+  $('body').on('click','.current_like_comment', function(event){
+    event.preventDefault();
+    var val_id = $(this).attr('id');
+    var data_id = $('#' + val_id).attr('value') || $('#' + val_id).attr('value');
+
+    $.ajax({
+      type:'POST',
+      url:'{{quizz.slug}}/like-comment/',
+      data:{
+        comment_id:$('#' + val_id).attr('value'),
+        csrfmiddlewaretoken:'{{ csrf_token }}'
+            },
+      success:function(data){
+            if(data.is_comment_liked == true){
+              $('#comment_dislike_btn_' + data_id).attr('disabled','disabled');
+            }
+            else
+              $('#comment_dislike_btn_' + data_id).removeAttr('disabled');
+            $('.like_section_' + data_id).html(data['result']);
+             $('#' + val_id).attr('value',data_id);
+      },
+      error:function(data){
+            console.log("error");
+      }
+    });
+  });
+
+
+$('body').on('click','.current_dislike_comment', function(event){
+  event.preventDefault();
+    var val_id = $(this).attr('id')
+    var data_id = $('#' + val_id).attr('value') || $('#' + val_id).attr('value');
+    // var like_id = $('#like_btn').attr('value');
+    $.ajax({
+      type:'POST',
+      url:'{{quizz.slug}}/dislike-comment/',
+      data:{
+        comment_id:$('#' + val_id).attr('value'),
+        csrfmiddlewaretoken:'{{ csrf_token }}'
+      },
+      success:function(data){
+        if(data.is_comment_liked != true){
+          $('#comment_like_btn_' + data_id).attr('disabled','disabled');
+        }
+        else{
+          $('#comment_like_btn_' + data_id).removeAttr('disabled');
+        }
+          $('.dislike_section_' + data_id).html(data['result']);
+          $('#' + val_id).attr('value',data_id);
+      },
+      error:function(data){
+            console.log("error");
+      }
+    });
+  });
+
+  {% for comment in comments %}
+    if($('#comment_like_btn_{{comment.id}}').hasClass('comment_like_clicked')){
+      $('#comment_dislike_btn_{{comment.id}}').attr('disabled','disabled')
+    }
+    {% for reply in comment.replies.all %}
+      if($('#comment_like_btn_{{reply.id}}').hasClass('comment_like_clicked')){
+        $('#comment_dislike_btn_{{reply.id}}').attr('disabled','disabled')
+      }
+    {% endfor %}
+  {% endfor %}
+
+  {% for comment in comments %}
+    if($('#comment_dislike_btn_{{comment.id}}').hasClass('comment_dislike_clicked')){
+      $('#comment_like_btn_{{comment.id}}').attr('disabled','disabled')
+    }
+    {% for reply in comment.replies.all %}
+      if($('#comment_dislike_btn_{{reply.id}}').hasClass('comment_dislike_clicked')){
+        $('#comment_like_btn_{{reply.id}}').attr('disabled','disabled')
+      }
+    {% endfor %}
+  {% endfor %}
+
+
+
+  if($('#like_btn').hasClass('like_clicked')){
+    $('#dislike_btn').attr('disabled','disabled')
+  }
+
+
+    $('body').on('click','#like_btn', function(event){
+      event.preventDefault();
+      var data_id = $(this).attr('value') || $('#dislike_btn').attr('value');
+      $.ajax({
+        type:'POST',
+        url:'{{quizz.slug}}/like/',
+        data:{id: data_id,
+              csrfmiddlewaretoken :'{{ csrf_token }}',
+            },
+        success:function(data){
+              if(data.is_liked == true)
+                $('#dislike_btn').attr('disabled','disabled');
+              else
+                $('#dislike_btn').removeAttr('disabled');
+              $('.likes_section').html(data['result']);
+               $('#like_btn').attr('value',data_id);
+        },
+        error:function(data){
+              console.log("error");
+        }
+      });
+    });
+
+    if($('#dislike_btn').hasClass('dislike_clicked')){
+      $('#like_btn').attr('disabled','disabled')
+    }
+
+    $('body').on('click','#dislike_btn', function(event){
+      event.preventDefault();
+      var data_id = $(this).attr('value') || $('#like_btn').attr('value');
+      // var like_id = $('#like_btn').attr('value');
+      $.ajax({
+        type:'POST',
+        url:'{{quizz.slug}}/dislike/',
+        data:{id: data_id,
+              csrfmiddlewaretoken :'{{ csrf_token }}',
+            },
+        success:function(data){
+          if(data.is_liked != true){
+            $('#like_btn').attr('disabled','disabled');
+          }
+          else{
+            $('#like_btn').removeAttr('disabled');
+          }
+            $('.dislikes_section').html(data['result']);
+            $('#dislike_btn').attr('value',data_id);
+        },
+        error:function(data){
+              console.log("error");
+        }
+      });
+    });
+
+  {% for comment in comments %}
+  $('#r{{comment.id}}').click(function(){
+    $(this).css('display','none');
+    $('#t{{comment.id}}').css('display','block');
+    $('#a{{comment.id}}').css('display','inline-block');
+    $('#da{{comment.id}}').css('display','inline-block');
+  });
+    {% endfor %}
+
+    {% for comment in comments %}
+  $('#da{{comment.id}}').click(function(){
+    $('#r{{comment.id}}').css('display','inline-block');
+    $('#t{{comment.id}}').css('display','none');
+    $('#a{{comment.id}}').css('display','none');
+    $('#da{{comment.id}}').css('display','none');
+  })
+
+  {% endfor %}
+
+
+  $('.to_upp').click(function() {
+     elementClick = $(this).attr("href");
+    destination = $(elementClick).offset().top - 150;
+    $('html,body').animate({ scrollTop: destination }, 700);
+         return false;﻿
+  });
+
+
+</script>
+
+
+{% endblock %}

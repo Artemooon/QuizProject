@@ -1,0 +1,17 @@
+{% extends 'quiz/base.html' %}
+{% load crispy_forms_tags %}
+{% load recaptcha2 %}
+
+{% block content %}
+<title>Naruto Quizzer | Sign Up</title>
+    <h1 class = "mt-3 text-center">Sign up</h1>
+    <form method = 'post' enctype="multipart/form-data" style = "padding-right:15px;">
+    {% csrf_token %}
+    {{form | crispy}}
+    {{image | crispy}}
+    <button class = "btn btn-warning" type="submit" name="button">Create account</button>
+    </form>
+
+    {% recaptcha_init %}
+
+{% endblock %}

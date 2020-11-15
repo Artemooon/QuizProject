@@ -1,0 +1,155 @@
+{% extends "quiz/base.html" %}
+{% load static %}
+
+{% block content %}
+<title>Naruto Quizzer | Profile {{user_instance.username}}</title>
+<style>
+  .student_rank{
+      width:calc({{user_instance.total_scores}} * 4%);
+  }
+
+  .genin_rank{
+      width:calc(({{user_instance.total_scores}} - {{academy_limit_scores}}) / ({{genin_limit_scores}} - {{academy_limit_scores}}) * 100%);
+  }
+
+  .chuunin_rank{
+    width:calc(({{user_instance.total_scores}} - {{genin_limit_scores}}) / ({{chunin_limit_scores}} - {{genin_limit_scores}}) * 100%);
+  }
+
+  .jounin_rank{
+      width:calc(({{user_instance.total_scores}} - {{chunin_limit_scores}}) / ({{jounin_limit_scores}} - {{chunin_limit_scores}}) * 100%);
+  }
+
+
+  .anbu_rank{
+    width:calc(({{user_instance.total_scores}} - {{jounin_limit_scores}}) / ({{anbu_limit_scores}} - {{jounin_limit_scores}}) * 100%);
+  }
+
+
+  .sanin_rank{
+    width:calc(({{user_instance.total_scores}} - {{anbu_limit_scores}}) / ({{sanin_limit_scores}} - {{anbu_limit_scores}}) * 100%);
+  }
+
+  .kage_rank{
+      width:calc(({{user_instance.total_scores}} - {{sanin_limit_scores}}) / ({{kage_limit_scores}} - {{sanin_limit_scores}}) * 100%);
+  }
+</style>
+<link rel="stylesheet" href="{% static 'account/css/profile.css' %}">
+<div class="container">
+  <div class="row">
+    <div class="col-lg-4 col-sm-12">
+      {% if user_instance.profile.avatar %}
+      <a href="{{user_instance.profile.avatar.url}}" target="_blank">
+      <img class = "profile_avatar" src="{{user_instance.profile.avatar.url}}" alt="avatar">
+      </a>
+      {% else %}
+      <img class = "profile_avatar" src="{{ user_instance.socialaccount_set.all.0.get_avatar_url}}" alt="avatar">
+      {% endif %}
+
+      <span class = "name_text">{{user_instance.first_name}}</span>
+      <span class = "username_text">{{user_instance.username}}</span>
+      <div class="level mt-5">
+      {% if user_instance.rank == 'Academy Student' %}
+        Rank: <span data-toggle="tooltip" data-placement="top" title="Current rank. +1 score for 1 correct answer" class = "text-success">{{user_instance.rank}} ({{user_instance.total_scores}})</span>
+        <div class="progress" style="height: 3px;">
+            <div class="progress-bar student_rank" role = "progressbar"  aria-valuenow="{{user_instance.total_scores}}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span>0</span>
+        <span style = "float:right;">{{academy_limit_scores}}</span>
+      {% endif %}
+      {% if user_instance.rank == 'Genin' %}
+        Rank: <span data-toggle="tooltip" data-placement="top" title="Current rank. +1 score for 1 correct answer" class = "text-info">{{user_instance.rank}} </span>({{user_instance.total_scores}})
+        <div class="progress progress-genin" style="height: 3px;">
+            <div class="progress-bar genin_rank" role = "progressbar"  aria-valuenow="{{user_instance.total_scores}}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span>{{academy_limit_scores}}</span>
+        <span style = "float:right;">{{genin_limit_scores}}</span>
+      {% endif %}
+      {% if user_instance.rank == 'Chuunin' %}
+        Rank: <span data-toggle="tooltip" data-placement="top" title="Current rank. +2 score for 1 correct answer" class = "text-primary">{{user_instance.rank}} </span>({{user_instance.total_scores}})
+        <div class="progress" style="height: 3px;">
+            <div class="progress-bar chuunin_rank" role = "progressbar"  aria-valuenow="{{user_instance.total_scores}}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span>{{genin_limit_scores}}</span>
+        <span style = "float:right;">{{chunin_limit_scores}}</span>
+      {% endif %}
+      {% if user_instance.rank == 'Jounin' %}
+        Rank: <span data-toggle="tooltip" data-placement="top" title="Current rank. +2 score for 1 correct answer" class = "text-warning">{{user_instance.rank}} </span>({{user_instance.total_scores}})
+        <div class="progress" style="height: 3px;">
+            <div class="progress-bar jounin_rank" role = "progressbar"  aria-valuenow="{{user_instance.total_scores}}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span>{{chunin_limit_scores}}</span>
+        <span style = "float:right;">{{jounin_limit_scores}}</span>
+      {% endif %}
+      {% if user_instance.rank == 'ANBU' %}
+        Rank: <span data-toggle="tooltip" data-placement="top" title="Current rank. +3 score for 1 correct answer" class = "text-secondary">{{user_instance.rank}} </span>({{user_instance.total_scores}})
+        <div class="progress" style="height: 3px;">
+            <div class="progress-bar anbu_rank" role = "progressbar"  aria-valuenow="{{user_instance.total_scores}}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span>{{jounin_limit_scores}}</span>
+        <span style = "float:right;">{{anbu_limit_scores}}</span>
+      {% endif %}
+      {% if user_instance.rank == 'Sannin' %}
+        Rank: <span data-toggle="tooltip" data-placement="top" title="Current rank. +4 score for 1 correct answer" class = "text-danger">{{user_instance.rank}} </span>({{user_instance.total_scores}})
+        <div class="progress" style="height: 3px;">
+            <div class="progress-bar sanin_rank" role = "progressbar"  aria-valuenow="{{user_instance.total_scores}}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span>{{anbu_limit_scores}}</span>
+        <span style = "float:right;">{{sanin_limit_scores}}</span>
+      {% endif %}
+      {% if user_instance.rank == 'Kage' %}
+        Rank: <span data-toggle="tooltip" data-placement="top" title="Current rank. +4 score for 1 correct answer" class = "text-silver">{{user_instance.rank}} ({{user_instance.total_scores}})</span>
+        <div class="progress" style="height: 3px;">
+            <div class="progress-bar kage_rank" role = "progressbar"  aria-valuenow="{{user_instance.total_scores}}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span>{{sanin_limit_scores}}</span>
+        <span style = "float:right;">{{kage_limit_scores}}</span>
+      {% endif %}
+      {% if user_instance.rank == 'NARUTO' %}
+        Rank: <span data-toggle="tooltip" data-placement="top" title="Current rank. +4 score for 1 correct answer" style = "color:#ffc107;">{{user_instance.rank}} ({{user_instance.total_scores}})</span>
+        <div class="progress" style="height: 3px;">
+            <div class="progress-bar kage_rank" role = "progressbar"  aria-valuenow="{{user_instance.total_scores}}" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <span>{{kage_limit_scores}}</span>
+        <span style = "float:right;">&#8734;</span>
+      {% endif %}
+      </div>
+      {% if user_instance == request.user %}
+      <span class = "settings_btn"><a href = "/settings" class="btn btn-primary">Settings</a></span>
+      {% endif %}
+    </div>
+    <div class="col-lg-4 col-sm-6">
+      <p class = "text-center user_total" style = "font-size:38px;">{{user_instance.total_scores}}</p>
+      <span style = "text-align:center; display:block; margin-top:-20px;"><small>Total scores</small></span>
+      <br>
+      <br>
+      <p class = "text-center user_total" style = "font-size:38px;">for {{user_instance.date_joined | timesince}}</p>
+      <span style = "text-align:center; display:block; margin-top:-20px;">{{user_instance.username}}<small> has been playing quizzes </small></span>
+    </div>
+    <div class="col-lg-4 col-sm-6">
+      <p class = "text-center user_total" style = "font-size:38px;">{{user_quiz_results.count}}</p>
+      <span style = "text-align:center; display:block; margin-top:-20px;"><small>Quizzes pasted</small></span>
+      <br>
+      <br>
+      <br>
+      <p class = "mt-5 ml-2 text-center"><a class = "btn btn-primary" href="stats/">More stats</a></p>
+    </div>
+  </div>
+</div>
+
+<div class="container results_block">
+  <div class="row">
+    {% if user_quiz_results.count > 0 %}
+    <h3 class = "mt-3 mb-4">Quizzes results: </h3>
+    {% endif %}
+    <br>
+    {% for user_quiz_result in user_quiz_results %}
+    <div class="col-12 text-center  result_item">
+        <span>{% if user_quiz_result.is_successfully_passed %} <i  class="text-success fa fa-check"></i> {% else %} <i class="text-danger fa fa-times"></i> {% endif %} {{user_quiz_result.user}} {% if user_quiz_result.is_successfully_passed %} successfully {% else %} unsuccessfully {% endif %} passed quiz {{user_quiz_result.quiz}} (link <a href="../../quiz/{{user_quiz_result.quiz.slug}}/result/{{user_quiz_result.result_link}}">#{{user_quiz_result.result_link}}</a>) with result: {{user_quiz_result.correct_answers}} of {{user_quiz_result.quiz.questions_set.all.count}} correct answers and got {{user_quiz_result.scores}} scores of <a href="/rating">rating</a></span>
+        <span class = "result_time">{{user_quiz_result.result_time | date:'d.m.Y H:i'}}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

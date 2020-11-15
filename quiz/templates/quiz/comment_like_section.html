@@ -1,0 +1,10 @@
+<form method = "POST" id = "comment_like_form_{{ comment.id }}" action="like-comment/">
+{% csrf_token %}
+{% if request.user in comment.likes.all  %}
+<button class = "comment_like_clicked current_like_comment" id = "comment_like_btn_{{ comment.id }}" type = "submit" name = "comment_like_id" value = "{{ comment.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+<span>{{ comment.likes.count }} </span>
+{% else %}
+<button class = "comment_like current_like_comment" id = "comment_like_btn_{{ comment.id }}" type = "submit" name = "comment_like_id" value = "{{ comment.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+<span>{{ comment.likes.count }}</span>
+{% endif %}
+</form>

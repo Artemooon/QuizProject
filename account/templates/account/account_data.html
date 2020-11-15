@@ -1,0 +1,96 @@
+{% extends "quiz/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+
+{% block content %}
+<title>Naruto Quizzer | Settings</title>
+<link rel="stylesheet" href="{% static 'account/css/account_data.css' %}">
+<div class="mt-4 container acoount_data_block">
+  <h3 class = "mt-3">Yours account data</h3>
+<div class="row mt-4">
+  <div class="col-lg-4 col-sm-12 user_data_text">Username</div>
+  <div class="col-lg-4 col-sm-12 user_data_text">{{user.username}}</div>
+</div>
+<div class="row mt-4">
+  <div class="col-lg-4 col-sm-12 user_data_text">E-mail</div>
+  <div class="col-lg-4 col-sm-12 user_data_text  email_text">{{user.email}}</div>
+    {% if user.no_social %}
+  <div style = "font-weight:normal;" class="col-lg-4 col-sm-12 user_data_text text-center"><a class = "change_toggle">Change</a></div>
+  {% endif %}
+  </div>
+  {% if user.no_social %}
+  <form method = 'POST' class = "email_form display_form">
+  {% csrf_token %}
+  {{form | crispy}}
+  <button type = "submit" name = "email_submit" class = "btn btn-info">Update</button>
+  </form>
+  {% endif %}
+  {% if user.no_social %}
+  <div class="row mt-4">
+    <div class="col-lg-4 col-sm-12 user_data_text">Password</div>
+    <div class="col-lg-4 col-sm-12 user_data_text">********</div>
+    <div style = "font-weight:normal;" class="col-lg-4 col-sm-12 user_data_text text-center"><a class = "change_toggle_pass">Change</a></div>
+  </div>
+<form method = 'POST' class = "password_form display_form">
+{% csrf_token %}
+{{pass_form | crispy}}
+<button type = "submit" name = "password_submit" class = "btn btn-info">Update</button>
+</form>
+{% endif %}
+<div class="row mt-4">
+  <div class="col-lg-4 col-sm-12 user_data_text">Avatar</div>
+  {% if user.profile.avatar %}
+  <div class="col-lg-4 col-sm-12 user_data_text"><img class = "user_avatar_data" src="{{user.profile.avatar.url}}" alt="avatar"></div>
+  {% else %}
+  <div class="col-lg-4 col-sm-12 user_data_text"><img class = "user_avatar_data" src="{{user.socialaccount_set.all.0.get_avatar_url}}" alt="avatar"></div>
+  {% endif %}
+  <div style = "font-weight:normal;" class="col-lg-4 col-sm-12 user_data_text text-center"><a class = "change_toggle_avatar">Change</a></div>
+</div>
+<form method = 'POST' class = "avatar_form display_form" enctype="multipart/form-data">
+{% csrf_token %}
+{{avatar_form | crispy}}
+<button type = "submit" name = "avatar_submit" class = "btn btn-info">Update</button>
+</form>
+<div class="row mt-4">
+  <div class="col-4 user_data_text">Account creation date</div>
+  <div class="col-4 user_data_text">{{user.date_joined}}</div>
+</div>
+</div>
+<hr>
+<div class="container acoount_data_block">
+<div class="row mt-4">
+  <div class="col-4 user_data_text">Change name</div>
+</div>
+<div class="row">
+  <div class="col-12">
+  <form method = 'POST'>
+    {% csrf_token %}
+    {{name_form|crispy}}
+    <button type = "submit" class = "mb-2 btn btn-info">Update</button>
+  </form>
+  </div>
+</div>
+</div>
+
+<script>
+
+$('#id_name_field').attr('value' ,'{{request.user.first_name}}');
+
+$('.change_toggle').click(function(){
+    $(".email_form").toggleClass("display_form");
+});
+
+$('.change_toggle_pass').click(function(){
+    $(".password_form").toggleClass("display_form");
+});
+
+$('.change_toggle_avatar').click(function(){
+    $(".avatar_form").toggleClass("display_form");
+});
+
+
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,10 @@
+<form class = "dislike_comment_form" id = "comment_dislike_form_{{ comment.id }}" action = "dislike-comment/" method = "POST">
+  {% csrf_token %}
+  {% if request.user in comment.dislikes.all  %}
+  <button class = "comment_dislike_clicked current_dislike_comment" id = "comment_dislike_btn_{{ comment.id }}" name = "comment_dislike_id"  type = "submit"  value = "{{ comment.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+  <span>{{ comment.dislikes.count }}</span>
+  {% else %}
+  <button class = "comment_dislike current_dislike_comment" id = "comment_dislike_btn_{{ comment.id }}" name = "comment_dislike_id" type = "submit" value = "{{ comment.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+  <span>{{ comment.dislikes.count }}</span>
+  {% endif %}
+</form>

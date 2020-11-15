@@ -1,0 +1,16 @@
+{% if not user.is_authenticated %}
+<p>Likes: {{ quizz.likes.count }}</p>
+{% endif %}
+{% if user.is_authenticated %}
+<form method = "POST" action="like/">
+{% csrf_token %}
+{% if is_liked == False %}
+<button class = "like" id = "like_btn" type = "submit" name = "like_id" value = "{{ quizz.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+<span>Likes: {{ total_likes }}</span>
+{% else %}
+<button class = "like_clicked" id = "like_btn" type = "submit" name = "like_id" value = "{{ quizz.id }}"><i class="fa fa-thumbs-o-up"></i></button>
+<span>Likes: {{ total_likes }} </span>
+{% endif %}
+</form>
+
+{% endif %}

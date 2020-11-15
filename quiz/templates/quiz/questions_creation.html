@@ -1,0 +1,55 @@
+{% extends 'quiz/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  .thead-bg{
+    background:#d9b2d9;
+    color:#212529;
+  }
+
+  .question_number{
+    border:2px solid #ffc107;
+    width:50px;
+    height: 50px;
+    padding:5px;
+    line-height:38px;
+    text-align: center;
+    margin-top:20px;
+    display:inline-block;
+    font-size:20px;
+  }
+
+  .question_number:hover{
+    cursor: pointer;
+    background: rgba(128,0,128 ,.3 );
+  }
+</style>
+
+<h2 class = "mt-4 mb-5 text-center">Quiz Information</h2>
+<table class="table" style = "margin-left:-7px;">
+  <thead class = "thead-bg">
+    <tr>
+      <th>Quiz name</th>
+      <th>Number of questions</th>
+      <th>Quiz description</th>
+      <th>Duration</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>{{quiz.quiz}}</th>
+      <td>{{quiz.questions_count}}</td>
+      <td>{{quiz.preview_field}}</td>
+      <td>{{quiz.timer}}</td>
+    </tr>
+  </tbody>
+</table>
+<br>
+  {{quiz.questions_count.count}}
+  {% for q in quiz.questions_count.count %}
+    <span onclick= "currSlide({{ forloop.counter }})" class = "question_number">{{ forloop.counter }}</span>
+  {% endfor %}
+
+
+{% endblock %}

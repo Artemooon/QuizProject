@@ -1,0 +1,82 @@
+{% extends "quiz/base.html" %}
+{% load static %}
+{% load mathfilters %}
+{% load place_filter %}
+
+{% block content %}
+<title>Naruto Quizzer | Rating</title>
+<style>
+footer{
+  display: none;
+}
+
+@media screen and (max-width:940px){
+  .search_btn{
+    margin-top:30px;
+    margin-left:7px;
+  }
+}
+
+</style>
+
+<form class = "mt-4">
+  <input name = "search_user_field" type="text" placeholder= "Find a user" class = "form-control ml-2" style = "width:90%; display:inline-block;">
+  <button style = "display:inline-block;" type = "submit" class = "ml-1 btn btn-outline-primary search_btn">Search</button>
+</form>
+<div class="table-responsive">
+  <table class = "table mt-4">
+    <tr>
+    <td>Username</td>
+    <td>Place</td>
+    <td>Rank</td>
+    <td>Total Scores</td>
+    </tr>
+  {% for user in users %}
+    <tr>
+    <td><a href="../profile/{{user.slug}}/">{{user.username}}</a></td>
+    <td>
+      <span style = "font-size:20px;">{% if forloop.counter == 1 %}🥇</span>
+      <span style = "font-size:20px;">{% elif forloop.counter == 2 %}🥈</span>
+      <span style = "font-size:20px;">{% elif forloop.counter == 3 %}🥉</span> {% else %}{{ page_obj.number|index_counter|add:forloop.counter}}{% endif %}
+    </td>
+    <td class="{% if user.rank == 'Academy Student' %}academy{% else %} {{user.rank}}  {% endif %}">{{user.rank}}</td>
+    <td>{{user.total_scores}}</td>
+    </tr>
+  {% endfor %}
+</table>
+</div>
+  {% if is_paginated %}
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{page_obj.previous_page_number}}"
+            >&laquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <a class="page-link" href="#">&laquo;</a>
+        </li>
+        {% endif %}
+        {% for i in paginator.page_range %}
+         {% if page_obj.number == i %}
+        <li class="page-item"><a class="page-link active">{{ i }}</a></li>
+        {% else %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a href="?page={{page_obj.next_page_number}}" class="page-link">&raquo;</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <a class="page-link">&raquo;</a>
+        </li>
+        {% endif %}
+      </ul>
+      {% endif %}
+
+
+{% endblock %}
